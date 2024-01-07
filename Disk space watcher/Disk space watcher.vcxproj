@@ -141,12 +141,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\IniFiles.c" />
     <ClCompile Include="src\Main.c" />
     <ClCompile Include="src\Utils.c" />
     <ClCompile Include="src\WinApiControls.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="src\IniFiles.h" />
     <ClInclude Include="src\Utils.h" />
     <ClInclude Include="src\WinApiControls.h" />
   </ItemGroup>

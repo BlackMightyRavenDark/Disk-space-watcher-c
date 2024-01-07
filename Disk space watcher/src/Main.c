@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <stdio.h>
+#include "IniFiles.h"
 #include "Utils.h"
 #include "WinApiControls.h"
 
@@ -177,6 +178,7 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
     static HFONT font;
     static POINT mousePosition;
     static int canDragWindow = 0;
+    static wchar_t iniFilePath[256];
 
     switch (uMessage)
 	{
@@ -292,15 +294,54 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
                 SetTimer(hWnd, TIMER_ID_UPDATE_DRIVES, 5000, NULL);
             }
 
+            //Get self directory and config file name.
+            wchar_t selfDirectory[256];
+            getSelfDirectory(selfDirectory);
+            memcpy(&iniFilePath, &selfDirectory, (wcslen(selfDirectory) + 1) * 2);
+            wcscat_s(iniFilePath, 256, L"\\DSW.ini");
+
+            //Load window position.
+            const int magicNumber = -10001;
+            int windowPositionX = IniGetInt(iniFilePath, L"Main", L"Window left", magicNumber);
+            int windowPositionY = IniGetInt(iniFilePath, L"Main", L"Window top", magicNumber);
+
+            if (windowPositionX == magicNumber && windowPositionY == magicNumber)
+            {
+                POINT cursorPosition;
+                if (GetCursorPos(&cursorPosition))
+                {
+                    windowPositionX = cursorPosition.x;
+                    windowPositionY = cursorPosition.y;
+                }
+                else
+                {
+                    windowPositionX = windowPositionY = 0;
+                }
+            }
+
+            //Apply loaded position.
+            SetWindowPos(hWnd, 0, windowPositionX, windowPositionY, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+
             break;
         }
 
         case WM_DESTROY:
+        {
             KillTimer(hWnd, TIMER_ID_UPDATE_DRIVES);
             KillTimer(hWnd, TIMER_ID_UPDATE_RAM);
             DeleteObject(font);
+
+            //Save window position.
+            RECT r;
+            if (GetWindowRect(hMainWindow, &r))
+            {
+                IniSetInt(iniFilePath, L"Main", L"Window left", r.left);
+                IniSetInt(iniFilePath, L"Main", L"Window top", r.top);
+            }
+
             PostQuitMessage(0);
             break;
+        }
 
         default:
             return DefWindowProc(hWnd, uMessage, wParam, lParam);
@@ -341,15 +382,10 @@ int APIENTRY wWinMain(
     const int windowWidth = 246;
     const int windowHeight = 100;
 
-    POINT cursorPosition;
-    int ok = GetCursorPos(&cursorPosition);
-    const int windowPositionX = ok ? cursorPosition.x : 0;
-    const int windowPositionY = ok ? cursorPosition.y : 0;
-
     hMainWindow = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
         wndClassEx.lpszClassName, MY_TITLE,
         WS_VISIBLE | WS_CLIPCHILDREN | WS_POPUP,
-        windowPositionX, windowPositionY, windowWidth, windowHeight,
+        CW_USEDEFAULT, CW_USEDEFAULT, windowWidth, windowHeight,
         NULL, NULL, selfInstance, NULL);
 
     MSG msg;

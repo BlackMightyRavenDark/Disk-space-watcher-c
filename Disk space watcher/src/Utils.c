@@ -134,3 +134,27 @@ HFONT createFont(wchar_t* fontName, unsigned int width, unsigned int height)
 
     return CreateFontIndirect(&logFont);
 }
+
+void getSelfDirectory(wchar_t* directory)
+{
+    LPWSTR commandLine = GetCommandLine();
+
+    wchar_t buf[256];
+    memset(&buf, 0, 512);
+
+    size_t len = wcslen(commandLine);
+    int i = 1;
+    for (; i < len; ++i)
+    {
+        if (commandLine[i] == '\"') { break; }
+        buf[i - 1] = commandLine[i];
+    }
+
+    for (; i > 0; --i)
+    {
+        if (buf[i] == '\\') { break; }
+    }
+    buf[i] = '\0';
+
+    memcpy(directory, &buf, (wcslen(buf) + 1) * 2);
+}
