@@ -203,13 +203,19 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
             break;
 
         case WM_LBUTTONDOWN:
+        {
             mousePosition.x = LOWORD(lParam);
             mousePosition.y = HIWORD(lParam);
+
+            HCURSOR cursorSizeAll = LoadCursor(NULL, IDC_SIZEALL);
+            SetCursor(cursorSizeAll);
+            SetClassLongPtr(hWnd, GCLP_HCURSOR, (LONG_PTR)cursorSizeAll);
 
             SetCapture(hWnd);
             canDragWindow = 1;
 
             break;
+        }
 
         case WM_MOUSEMOVE:
         {
@@ -233,9 +239,19 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
 
         case WM_KILLFOCUS:
         case WM_LBUTTONUP:
-            canDragWindow = 0;
-            ReleaseCapture();
+        {
+            if (canDragWindow)
+            {
+                HCURSOR cursorArrow = LoadCursor(NULL, IDC_ARROW);
+                SetCursor(cursorArrow);
+                SetClassLongPtr(hWnd, GCLP_HCURSOR, (LONG_PTR)cursorArrow);
+
+                canDragWindow = 0;
+                ReleaseCapture();
+            }
+
             break;
+        }
 
         case WM_COMMAND:
             switch (LOWORD(wParam))
