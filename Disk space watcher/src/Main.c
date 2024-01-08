@@ -343,6 +343,13 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
             break;
         }
 
+        case WM_QUERYENDSESSION:
+            return 1;
+
+        case WM_ENDSESSION:
+            if (wParam == 1) { DestroyWindow(hWnd); }
+            return 0;
+
         default:
             return DefWindowProc(hWnd, uMessage, wParam, lParam);
     }
