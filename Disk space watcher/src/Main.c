@@ -208,8 +208,8 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
                     }
                     else
                     {
-                        SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 5000, NULL);
-                        SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 1000, NULL);
+                        SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 5000u, NULL);
+                        SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 1000u, NULL);
 
                         checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
 
@@ -356,7 +356,7 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
                 SendMessage(hLabelRam, WM_SETFONT, (WPARAM)font, 0);
 
                 updateRam();
-                SetTimer(hWnd, TIMER_ID_UPDATE_RAM, 1000, NULL);
+                SetTimer(hWnd, TIMER_ID_UPDATE_RAM, 1000u, NULL);
             }
 
             hListBoxDrives = createListBox(L"Drive list", 0, 0, 0, 0, ID_LISTBOX, hWnd);
@@ -368,7 +368,7 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
 
                 oldListBoxDrivesWndProc = (WNDPROC)SetWindowLongPtr(hListBoxDrives, GWLP_WNDPROC, (LONG_PTR)&listBoxDrivesWndProc);
 
-                SetTimer(hWnd, TIMER_ID_UPDATE_DRIVES, 5000, NULL);
+                SetTimer(hWnd, TIMER_ID_UPDATE_DRIVES, 5000u, NULL);
             }
 
             contextMenu = createContextMenu();
