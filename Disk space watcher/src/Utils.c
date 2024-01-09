@@ -158,3 +158,17 @@ void getSelfDirectory(wchar_t* directory)
 
     memcpy(directory, &buf, (wcslen(buf) + 1) * 2);
 }
+
+int checkMenuItem(HMENU hMenu, UINT itemId, UINT checked)
+{
+    MENUITEMINFO menuItemInfo;
+    menuItemInfo.cbSize = sizeof(MENUITEMINFO);
+    menuItemInfo.fMask = MIIM_STATE;
+    if (GetMenuItemInfo(hMenu, itemId, 0, &menuItemInfo))
+    {
+        menuItemInfo.fState = checked ? MFS_CHECKED : MFS_UNCHECKED;
+        return SetMenuItemInfo(hMenu, itemId, 0, &menuItemInfo);
+    }
+
+    return 0;
+}

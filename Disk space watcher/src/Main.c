@@ -9,6 +9,10 @@
 
 #define ID_LISTBOX (WM_USER + 1)
 
+#define ID_MENU_ITEM_UPDATE_DATA (WM_USER + 10)
+#define ID_MENU_ITEM_TIMERS_ACTIVE (WM_USER + 11)
+#define ID_MEMU_ITEM_EXIT (WM_USER + 12)
+
 HWND hMainWindow;
 HWND hLabelRam;
 HWND hListBoxDrives;
@@ -18,8 +22,27 @@ WNDPROC oldListBoxDrivesWndProc;
 COLORREF colorBackground = RGB(240, 240, 240);
 COLORREF colorRam = 0;
 HBRUSH brushBackground;
+HMENU contextMenu;
 
+int isTimersEnabled = 1;
 int listBoxSelectedIndex = -1;
+
+HMENU createContextMenu()
+{
+    HMENU hMenu = CreatePopupMenu();
+    if (hMenu)
+    {
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_UPDATE_DATA, L"Обновить данные");
+
+        int flagsItemTimersActive = isTimersEnabled ? MF_STRING | MF_CHECKED : MF_STRING;
+        AppendMenu(hMenu, flagsItemTimersActive, ID_MENU_ITEM_TIMERS_ACTIVE, L"Обновлять по таймеру");
+
+        AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+        AppendMenu(hMenu, MF_STRING, ID_MEMU_ITEM_EXIT, L"Выход");
+    }
+
+    return hMenu;
+}
 
 void listDrivesFreeSpace()
 {
@@ -165,9 +188,52 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
 {
     switch (uMessage)
     {
-        case WM_RBUTTONDOWN:
-            DestroyWindow(hMainWindow);
+        case WM_COMMAND:
+            switch (LOWORD(wParam))
+            {
+                case ID_MENU_ITEM_UPDATE_DATA:
+                    updateDrives();
+                    updateRam();
+                    break;
+
+                case ID_MENU_ITEM_TIMERS_ACTIVE:
+                    if (isTimersEnabled)
+                    {
+                        KillTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES);
+                        KillTimer(hMainWindow, TIMER_ID_UPDATE_RAM);
+
+                        checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 0u);
+
+                        isTimersEnabled = 0;
+                    }
+                    else
+                    {
+                        SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 5000, NULL);
+                        SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 1000, NULL);
+
+                        checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+
+                        isTimersEnabled = 1;
+                    }
+
+                    break;
+
+                case ID_MEMU_ITEM_EXIT:
+                    DestroyWindow(hMainWindow);
+                    break;
+            }
             break;
+
+        case WM_RBUTTONUP:
+        {
+            POINT p;
+            if (GetCursorPos(&p))
+            {
+                TrackPopupMenu(contextMenu, TPM_LEFTALIGN | TPM_RIGHTBUTTON, p.x, p.y, 0, hListBoxDrives, NULL);
+            }
+
+            break;
+        }
     }
 
     return CallWindowProc(oldListBoxDrivesWndProc, hWnd, uMessage, wParam, lParam);
@@ -255,6 +321,17 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
             break;
         }
 
+        case WM_RBUTTONUP:
+        {
+            POINT p;
+            if (GetCursorPos(&p))
+            {
+                TrackPopupMenu(contextMenu, TPM_LEFTALIGN | TPM_RIGHTBUTTON, p.x, p.y, 0, hListBoxDrives, NULL);
+            }
+
+            break;
+        }
+
         case WM_COMMAND:
             switch (LOWORD(wParam))
             {
@@ -294,6 +371,8 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
                 SetTimer(hWnd, TIMER_ID_UPDATE_DRIVES, 5000, NULL);
             }
 
+            contextMenu = createContextMenu();
+
             //Get self directory and config file name.
             wchar_t selfDirectory[256];
             getSelfDirectory(selfDirectory);
@@ -330,6 +409,7 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
             KillTimer(hWnd, TIMER_ID_UPDATE_DRIVES);
             KillTimer(hWnd, TIMER_ID_UPDATE_RAM);
             DeleteObject(font);
+            DestroyMenu(contextMenu);
 
             //Save window position.
             RECT r;
