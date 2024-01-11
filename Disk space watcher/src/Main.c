@@ -476,7 +476,7 @@ int APIENTRY wWinMain(
         NULL, NULL, selfInstance, NULL);
 
     MSG msg;
-    while (GetMessage(&msg, 0, 0, 0))
+    while (GetMessage(&msg, NULL, 0u, 0u))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
