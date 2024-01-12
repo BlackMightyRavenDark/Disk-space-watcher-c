@@ -11,7 +11,8 @@
 
 #define ID_MENU_ITEM_UPDATE_DATA (WM_USER + 10)
 #define ID_MENU_ITEM_TIMERS_ACTIVE (WM_USER + 11)
-#define ID_MEMU_ITEM_EXIT (WM_USER + 12)
+#define ID_MENU_ITEM_STAY_ON_TOP (WM_USER + 12)
+#define ID_MEMU_ITEM_EXIT (WM_USER + 13)
 
 HWND hMainWindow;
 HWND hLabelRam;
@@ -25,6 +26,7 @@ HBRUSH brushBackground;
 HMENU contextMenu;
 
 int isTimersEnabled = 1;
+int isStayOnTop = 1;
 int listBoxSelectedIndex = -1;
 
 HMENU createContextMenu()
@@ -37,6 +39,9 @@ HMENU createContextMenu()
         int flagsItemTimersActive = isTimersEnabled ? MF_STRING | MF_CHECKED : MF_STRING;
         AppendMenu(hMenu, flagsItemTimersActive, ID_MENU_ITEM_TIMERS_ACTIVE, L"Обновлять по таймеру");
 
+        AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+        int flagsItemStayOnTop = isStayOnTop ? MF_STRING | MF_CHECKED : MF_STRING;
+        AppendMenu(hMenu, flagsItemStayOnTop, ID_MENU_ITEM_STAY_ON_TOP, L"Поверх всех окон");
         AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
         AppendMenu(hMenu, MF_STRING, ID_MEMU_ITEM_EXIT, L"Выход");
     }
@@ -214,6 +219,22 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
                         checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
 
                         isTimersEnabled = 1;
+                    }
+
+                    break;
+
+                case ID_MENU_ITEM_STAY_ON_TOP:
+                    if (isStayOnTop)
+                    {
+                        setIsWindowStayingOnTop(hMainWindow, 0);
+                        checkMenuItem(contextMenu, ID_MENU_ITEM_STAY_ON_TOP, 0u);
+                        isStayOnTop = 0;
+                    }
+                    else
+                    {
+                        setIsWindowStayingOnTop(hMainWindow, 1);
+                        checkMenuItem(contextMenu, ID_MENU_ITEM_STAY_ON_TOP, 1u);
+                        isStayOnTop = 1;
                     }
 
                     break;
@@ -469,7 +490,8 @@ int APIENTRY wWinMain(
     const int windowWidth = 246;
     const int windowHeight = 100;
 
-    hMainWindow = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
+    DWORD styleEx = isStayOnTop ? WS_EX_TOOLWINDOW | WS_EX_TOPMOST : WS_EX_TOOLWINDOW;
+    hMainWindow = CreateWindowEx(styleEx,
         wndClassEx.lpszClassName, MY_TITLE,
         WS_VISIBLE | WS_CLIPCHILDREN | WS_POPUP,
         CW_USEDEFAULT, CW_USEDEFAULT, windowWidth, windowHeight,

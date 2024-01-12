@@ -159,6 +159,11 @@ void getSelfDirectory(wchar_t* directory)
     memcpy(directory, &buf, (wcslen(buf) + 1) * 2);
 }
 
+int setIsWindowStayingOnTop(HWND windowHandle, int stayOnTop)
+{
+    return SetWindowPos(windowHandle, stayOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+}
+
 int checkMenuItem(HMENU hMenu, UINT itemId, UINT checked)
 {
     MENUITEMINFO menuItemInfo;
