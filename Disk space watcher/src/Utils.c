@@ -177,3 +177,17 @@ int checkMenuItem(HMENU hMenu, UINT itemId, UINT checked)
 
     return 0;
 }
+
+int getDiskSpace(wchar_t* diskRoot, UINT64* totalSpace, UINT64* usedSpace, UINT64* freeSpace)
+{
+    if (GetDiskFreeSpaceEx(diskRoot, NULL, (PULARGE_INTEGER)totalSpace, (PULARGE_INTEGER)freeSpace))
+    {
+        *usedSpace = *totalSpace - *freeSpace;
+        return 1;
+    }
+    else
+    {
+        *totalSpace = *usedSpace = *freeSpace = 0ull;
+        return 0;
+    }
+}

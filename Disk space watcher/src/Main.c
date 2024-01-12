@@ -74,9 +74,9 @@ void listDrivesFreeSpace()
             resultString[2] = '\x20';
 
             UINT64 freeSpace;
-            UINT64 availableSpace;
+            UINT64 usedSpace;
             UINT64 totalSpace;
-            if (GetDiskFreeSpaceEx(drive, (PULARGE_INTEGER)&availableSpace, (PULARGE_INTEGER)&totalSpace, (PULARGE_INTEGER)&freeSpace))
+            if (getDiskSpace(drive, &totalSpace, &usedSpace, &freeSpace))
             {
                 wchar_t freeSpaceFormatted[32];
                 formatSize(freeSpaceFormatted, freeSpace);
