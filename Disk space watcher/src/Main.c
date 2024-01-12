@@ -120,7 +120,7 @@ void listDrivesFreeSpace()
                 wcscat_s(totalFreeSpaceFormatted, 32, plus);
                 wcscat_s(totalFreeSpaceFormatted, 32, totalResultString);
 
-                double totalPercent = 100.0 / summarySpace * summaryFreeSpace;
+                double totalPercent = 100.0 / (double)summarySpace * summaryFreeSpace;
                 wchar_t percentFormatted[16];
                 const wchar_t* fmt = totalPercent < 10.0f ? L" ( %.2f" : L" (%.2f";
                 swprintf_s(percentFormatted, 16, fmt, totalPercent);
