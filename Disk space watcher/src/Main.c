@@ -12,7 +12,7 @@
 #define ID_MENU_ITEM_UPDATE_DATA (WM_USER + 10)
 #define ID_MENU_ITEM_TIMERS_ACTIVE (WM_USER + 11)
 #define ID_MENU_ITEM_STAY_ON_TOP (WM_USER + 12)
-#define ID_MEMU_ITEM_EXIT (WM_USER + 13)
+#define ID_MENU_ITEM_EXIT (WM_USER + 13)
 
 HWND hMainWindow;
 HWND hLabelRam;
@@ -43,7 +43,7 @@ HMENU createContextMenu()
         int flagsItemStayOnTop = isStayOnTop ? MF_STRING | MF_CHECKED : MF_STRING;
         AppendMenu(hMenu, flagsItemStayOnTop, ID_MENU_ITEM_STAY_ON_TOP, L"Поверх всех окон");
         AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
-        AppendMenu(hMenu, MF_STRING, ID_MEMU_ITEM_EXIT, L"Выход");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_EXIT, L"Выход");
     }
 
     return hMenu;
@@ -239,7 +239,7 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
 
                     break;
 
-                case ID_MEMU_ITEM_EXIT:
+                case ID_MENU_ITEM_EXIT:
                     DestroyWindow(hMainWindow);
                     break;
             }
