@@ -82,15 +82,19 @@ void listDrivesFreeSpace()
                 formatSize(freeSpaceFormatted, freeSpace);
                 wcscat_s(resultString, 64, freeSpaceFormatted);
 
-                double percent = 100.0 / (double)totalSpace * freeSpace;
-                wchar_t percentFormatted[16];
-                const wchar_t* fmt = percent < 10.0f ? L" ( %.2f" : L" (%.2f";
-                swprintf_s(percentFormatted, 16, fmt, percent);
-                wcscat_s(percentFormatted, 16, L"%)");
+                if (totalSpace > 0ull)
+                {
+                    double percent = 100.0 / (double)totalSpace * freeSpace;
+                    wchar_t percentFormatted[16];
+                    const wchar_t* fmt = percent < 10.0f ? L" ( %.2f" : L" (%.2f";
+                    swprintf_s(percentFormatted, 16, fmt, percent);
+                    wcscat_s(percentFormatted, 16, L"%)");
 
-                wcscat_s(resultString, 64, percentFormatted);
+                    wcscat_s(resultString, 64, percentFormatted);
 
-                summarySpace += totalSpace;
+                    summarySpace += totalSpace;
+                }
+
                 summaryFreeSpace += freeSpace;
             }
             else
@@ -106,22 +110,29 @@ void listDrivesFreeSpace()
 
         if (driveCount > 1)
         {
-            wchar_t totalResultString[32];
-            formatSize(totalResultString, summaryFreeSpace);
-            wchar_t* plus = L"+: ";
-            wchar_t totalFreeSpaceFormatted[32];
-            totalFreeSpaceFormatted[0] = '\0';
-            wcscat_s(totalFreeSpaceFormatted, 32, plus);
-            wcscat_s(totalFreeSpaceFormatted, 32, totalResultString);
+            if (summaryFreeSpace > 0ull)
+            {
+                wchar_t totalResultString[32];
+                formatSize(totalResultString, summaryFreeSpace);
+                wchar_t* plus = L"+: ";
+                wchar_t totalFreeSpaceFormatted[32];
+                totalFreeSpaceFormatted[0] = '\0';
+                wcscat_s(totalFreeSpaceFormatted, 32, plus);
+                wcscat_s(totalFreeSpaceFormatted, 32, totalResultString);
 
-            double totalPercent = 100.0 / summarySpace * summaryFreeSpace;
-            wchar_t percentFormatted[16];
-            const wchar_t* fmt = totalPercent < 10.0f ? L" ( %.2f" : L" (%.2f";
-            swprintf_s(percentFormatted, 16, fmt, totalPercent);
-            wcscat_s(percentFormatted, 16, L"%)");
-            wcscat_s(totalFreeSpaceFormatted, 32, percentFormatted);
+                double totalPercent = 100.0 / summarySpace * summaryFreeSpace;
+                wchar_t percentFormatted[16];
+                const wchar_t* fmt = totalPercent < 10.0f ? L" ( %.2f" : L" (%.2f";
+                swprintf_s(percentFormatted, 16, fmt, totalPercent);
+                wcscat_s(percentFormatted, 16, L"%)");
+                wcscat_s(totalFreeSpaceFormatted, 32, percentFormatted);
 
-            listBox_AddString(hListBoxDrives, totalFreeSpaceFormatted);
+                listBox_AddString(hListBoxDrives, totalFreeSpaceFormatted);
+            }
+            else
+            {
+                listBox_AddString(hListBoxDrives, L"+: <error>");
+            }
         }
     }
 }
