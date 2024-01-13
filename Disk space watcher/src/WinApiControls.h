@@ -9,3 +9,5 @@ int listBox_GetItemCount(HWND handle);
 int listBox_GetItemHeight(HWND handle);
 int listBox_GetSelectedItemId(HWND handle);
 LRESULT listBox_SetSelectedItemId(HWND handle, int id);
+int listBox_GetStringLength(HWND handle, int id);
+int listBox_GetString(HWND handle, int id, wchar_t* buffer);

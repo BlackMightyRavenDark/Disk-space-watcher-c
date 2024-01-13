@@ -191,3 +191,41 @@ int getDiskSpace(wchar_t* diskRoot, UINT64* totalSpace, UINT64* usedSpace, UINT6
         return 0;
     }
 }
+
+int openDiskFromListBox(HWND listBoxHandle, int itemId)
+{
+    int stringLength = listBox_GetStringLength(listBoxHandle, itemId);
+    if (stringLength == LB_ERR) { return LB_ERR; }
+
+    if (stringLength > 1)
+    {
+        size_t bufferSize = (size_t)((stringLength + 1) * 2);
+        wchar_t* buffer = (wchar_t*)malloc(bufferSize);
+        if (buffer)
+        {
+            memset(buffer, 0, bufferSize);
+            stringLength = listBox_GetString(listBoxHandle, itemId, buffer);
+            if (stringLength == LB_ERR)
+            {
+                free(buffer);
+                return LB_ERR;
+            }
+
+            if (stringLength > 1)
+            {
+                wchar_t driveRoot[4];
+                memcpy(&driveRoot, buffer, 4);
+                free(buffer);
+                driveRoot[2] = '\\';
+                driveRoot[3] = '\0';
+
+                INT_PTR errorCode = (INT_PTR)ShellExecute(NULL, NULL, driveRoot, NULL, NULL, SW_SHOW);
+                return errorCode > 32ll;
+            }
+
+            free(buffer);
+        }
+    }
+
+    return 0;
+}

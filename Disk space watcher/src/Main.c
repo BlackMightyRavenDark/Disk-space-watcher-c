@@ -256,6 +256,19 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
             }
             break;
 
+        case WM_LBUTTONDBLCLK:
+        {
+            if (listBoxSelectedIndex >= 0)
+            {
+                int itemCount = listBox_GetItemCount(hListBoxDrives);
+                if (listBoxSelectedIndex < itemCount - 1)
+                {
+                    openDiskFromListBox(hListBoxDrives, listBoxSelectedIndex);
+                }
+            }
+            break;
+        }
+
         case WM_RBUTTONUP:
         {
             POINT p;

@@ -41,3 +41,13 @@ LRESULT listBox_SetSelectedItemId(HWND handle, int id)
 {
 	return SendMessage(handle, LB_SETCURSEL, id, 0);
 }
+
+int listBox_GetStringLength(HWND handle, int id)
+{
+	return (int)SendMessage(handle, LB_GETTEXTLEN, id, 0);
+}
+
+int listBox_GetString(HWND handle, int id, wchar_t* buffer)
+{
+	return (int)SendMessage(handle, LB_GETTEXT, id, (LPARAM)buffer);
+}
