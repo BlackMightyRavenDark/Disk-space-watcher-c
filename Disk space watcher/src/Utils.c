@@ -22,43 +22,43 @@ void formatSize(wchar_t* outputBuffer, long long llSize)
     long long gb = (llSize % TB) / GB;
     long long tb = (llSize % PB) / TB;
 
-    wchar_t res[32];
+    wchar_t buffer[32];
 
     wchar_t tbBuf[5];
     swprintf_s(tbBuf, 5, L"%I64d", tb);
     size_t len = wcslen(tbBuf);
     tbBuf[len] = '\x2C';
     tbBuf[len + 1] = '\0';
-    memcpy(&res, &tbBuf, (wcslen(tbBuf) + 1) * 2);
+    memcpy(&buffer, &tbBuf, (wcslen(tbBuf) + 1) * 2);
 
     wchar_t gbBuf[5];
     swprintf_s(gbBuf, 5, L"%03I64d", gb);
     len = wcslen(gbBuf);
     gbBuf[len] = '\x2C';
     gbBuf[len + 1] = '\0';
-    memcpy(&res[wcslen(res)], &gbBuf, (wcslen(gbBuf) + 1) * 2);
+    memcpy(&buffer[wcslen(buffer)], &gbBuf, (wcslen(gbBuf) + 1) * 2);
 
     wchar_t mbBuf[5];
     swprintf_s(mbBuf, 5, L"%03I64d", mb);
     len = wcslen(mbBuf);
     mbBuf[len] = '\x2C';
     mbBuf[len + 1] = '\0';
-    memcpy(&res[wcslen(res)], &mbBuf, (wcslen(mbBuf) + 1) * 2);
+    memcpy(&buffer[wcslen(buffer)], &mbBuf, (wcslen(mbBuf) + 1) * 2);
 
     wchar_t kbBuf[5];
     swprintf_s(kbBuf, 5, L"%03I64d", kb);
     len = wcslen(kbBuf);
     kbBuf[len] = '\x2C';
     kbBuf[len + 1] = '\0';
-    memcpy(&res[wcslen(res)], &kbBuf, (wcslen(kbBuf) + 1) * 2);
+    memcpy(&buffer[wcslen(buffer)], &kbBuf, (wcslen(kbBuf) + 1) * 2);
 
     wchar_t bBuf[5];
     swprintf_s(bBuf, 5, L"%03I64d", b);
     len = wcslen(bBuf);
     bBuf[len] = '\0';
-    memcpy(&res[wcslen(res)], &bBuf, (wcslen(mbBuf) + 1) * 2);
+    memcpy(&buffer[wcslen(buffer)], &bBuf, (wcslen(mbBuf) + 1) * 2);
 
-    memcpy(outputBuffer, &res, (wcslen(res) + 1) * 2);
+    memcpy(outputBuffer, &buffer, (wcslen(buffer) + 1) * 2);
 }
 
 void formatRam(wchar_t* outputBuffer, size_t ullSize)
@@ -73,54 +73,54 @@ void formatRam(wchar_t* outputBuffer, size_t ullSize)
     long long mb = (ullSize % GB) / MB;
     long long gb = (ullSize % TB) / GB;
 
-    wchar_t res[16];
-    res[0] = '\0';
+    wchar_t buffer[16];
+    buffer[0] = '\0';
 
     if (ullSize < KB)
     {
         wchar_t bBuf[4];
         swprintf_s(bBuf, 4, L"%I64d", b);
-        wcscat_s(res, 16, bBuf);
-        wcscat_s(res, 16, L" bytes");
+        wcscat_s(buffer, 16, bBuf);
+        wcscat_s(buffer, 16, L" bytes");
     }
     else if (ullSize >= KB && ullSize < MB)
     {
         wchar_t kbBuf[4];
         swprintf_s(kbBuf, 4, L"%I64d", kb);
-        wcscat_s(res, 16, kbBuf);
-        wcscat_s(res, 16, L",");
+        wcscat_s(buffer, 16, kbBuf);
+        wcscat_s(buffer, 16, L",");
 
         wchar_t bBuf[4];
         swprintf_s(bBuf, 4, L"%03I64d", b);
-        wcscat_s(res, 16, bBuf);
-        wcscat_s(res, 16, L" KB");
+        wcscat_s(buffer, 16, bBuf);
+        wcscat_s(buffer, 16, L" KB");
     }
     else if (ullSize >= MB && ullSize < GB)
     {
         wchar_t mbBuf[4];
         swprintf_s(mbBuf, 4, L"%I64d", mb);
-        wcscat_s(res, 16, mbBuf);
-        wcscat_s(res, 16, L",");
+        wcscat_s(buffer, 16, mbBuf);
+        wcscat_s(buffer, 16, L",");
 
         wchar_t kbBuf[4];
         swprintf_s(kbBuf, 4, L"%03I64d", kb);
-        wcscat_s(res, 16, kbBuf);
-        wcscat_s(res, 16, L" MB");
+        wcscat_s(buffer, 16, kbBuf);
+        wcscat_s(buffer, 16, L" MB");
     }
     else if (ullSize >= GB)
     {
         wchar_t gbBuf[4];
         swprintf_s(gbBuf, 4, L"%I64d", gb);
-        wcscat_s(res, 16, gbBuf);
-        wcscat_s(res, 16, L",");
+        wcscat_s(buffer, 16, gbBuf);
+        wcscat_s(buffer, 16, L",");
 
         wchar_t mbBuf[4];
         swprintf_s(mbBuf, 4, L"%03I64d", mb);
-        wcscat_s(res, 16, mbBuf);
-        wcscat_s(res, 16, L" GB");
+        wcscat_s(buffer, 16, mbBuf);
+        wcscat_s(buffer, 16, L" GB");
     }
 
-    memcpy(outputBuffer, &res, (wcslen(res) + 1) * 2);
+    memcpy(outputBuffer, &buffer, (wcslen(buffer) + 1) * 2);
 }
 
 HFONT createFont(wchar_t* fontName, unsigned int width, unsigned int height)
@@ -135,44 +135,44 @@ HFONT createFont(wchar_t* fontName, unsigned int width, unsigned int height)
     return CreateFontIndirect(&logFont);
 }
 
-void getSelfDirectory(wchar_t* directory)
+void getSelfDirectory(wchar_t* outputBuffer)
 {
     LPWSTR commandLine = GetCommandLine();
 
-    wchar_t buf[256];
-    memset(&buf, 0, 512);
+    wchar_t buffer[256];
+    memset(&buffer, 0, 512);
 
-    size_t len = wcslen(commandLine);
+    size_t length = wcslen(commandLine);
     int i = 1;
-    for (; i < len; ++i)
+    for (; i < length; ++i)
     {
         if (commandLine[i] == '\"') { break; }
-        buf[i - 1] = commandLine[i];
+        buffer[i - 1] = commandLine[i];
     }
 
     for (; i > 0; --i)
     {
-        if (buf[i] == '\\') { break; }
+        if (buffer[i] == '\\') { break; }
     }
-    buf[i] = '\0';
+    buffer[i] = '\0';
 
-    memcpy(directory, &buf, (wcslen(buf) + 1) * 2);
+    memcpy(outputBuffer, &buffer, (wcslen(buffer) + 1) * 2);
 }
 
-int setIsWindowStayingOnTop(HWND windowHandle, int stayOnTop)
+BOOL setIsWindowStayingOnTop(HWND windowHandle, int stayOnTop)
 {
     return SetWindowPos(windowHandle, stayOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
-int checkMenuItem(HMENU hMenu, UINT itemId, UINT checked)
+int checkMenuItem(HMENU menuHandle, UINT itemId, UINT checked)
 {
     MENUITEMINFO menuItemInfo;
     menuItemInfo.cbSize = sizeof(MENUITEMINFO);
     menuItemInfo.fMask = MIIM_STATE;
-    if (GetMenuItemInfo(hMenu, itemId, 0, &menuItemInfo))
+    if (GetMenuItemInfo(menuHandle, itemId, 0, &menuItemInfo))
     {
         menuItemInfo.fState = checked ? MFS_CHECKED : MFS_UNCHECKED;
-        return SetMenuItemInfo(hMenu, itemId, 0, &menuItemInfo);
+        return SetMenuItemInfo(menuHandle, itemId, 0, &menuItemInfo);
     }
 
     return 0;
