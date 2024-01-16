@@ -11,8 +11,9 @@
 
 #define ID_MENU_ITEM_UPDATE_DATA (WM_USER + 10)
 #define ID_MENU_ITEM_TIMERS_ACTIVE (WM_USER + 11)
-#define ID_MENU_ITEM_STAY_ON_TOP (WM_USER + 12)
-#define ID_MENU_ITEM_EXIT (WM_USER + 13)
+#define ID_MENU_ITEM_SHOW_SUM (WM_USER + 12)
+#define ID_MENU_ITEM_STAY_ON_TOP (WM_USER + 13)
+#define ID_MENU_ITEM_EXIT (WM_USER + 14)
 
 HWND hMainWindow;
 HWND hLabelRam;
@@ -27,6 +28,7 @@ HMENU contextMenu;
 
 int isTimersEnabled = 1;
 int isStayOnTop = 1;
+int isShowSum = 1;
 int listBoxSelectedIndex = -1;
 
 HMENU createContextMenu()
@@ -38,6 +40,8 @@ HMENU createContextMenu()
 
         int flagsItemTimersActive = isTimersEnabled ? MF_STRING | MF_CHECKED : MF_STRING;
         AppendMenu(hMenu, flagsItemTimersActive, ID_MENU_ITEM_TIMERS_ACTIVE, L"Обновлять по таймеру");
+        int flagsItemShowSum = isShowSum ? MF_STRING | MF_CHECKED : MF_STRING;
+        AppendMenu(hMenu, flagsItemShowSum, ID_MENU_ITEM_SHOW_SUM, L"Показывать сумму");
 
         AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
         int flagsItemStayOnTop = isStayOnTop ? MF_STRING | MF_CHECKED : MF_STRING;
@@ -108,7 +112,7 @@ void listDrivesFreeSpace()
             driveCount++;
         }
 
-        if (driveCount > 1)
+        if (isShowSum && driveCount > 1)
         {
             if (summaryFreeSpace > 0ull)
             {
@@ -234,6 +238,24 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
 
                     break;
 
+                case ID_MENU_ITEM_SHOW_SUM:
+                    if (isShowSum)
+                    {
+                        checkMenuItem(contextMenu, ID_MENU_ITEM_SHOW_SUM, 0u);
+
+                        isShowSum = 0;
+                    }
+                    else
+                    {
+                        checkMenuItem(contextMenu, ID_MENU_ITEM_SHOW_SUM, 1u);
+
+                        isShowSum = 1;
+                    }
+
+                    if (isTimersEnabled) { updateDrives(); }
+
+                    break;
+
                 case ID_MENU_ITEM_STAY_ON_TOP:
                     if (isStayOnTop)
                     {
@@ -261,10 +283,11 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
             if (listBoxSelectedIndex >= 0)
             {
                 int itemCount = listBox_GetItemCount(hListBoxDrives);
-                if (listBoxSelectedIndex < itemCount - 1)
+                if (isShowSum && itemCount > 1 && listBoxSelectedIndex >= itemCount - 1)
                 {
-                    openDiskFromListBox(hListBoxDrives, listBoxSelectedIndex);
+                    break;
                 }
+                openDiskFromListBox(hListBoxDrives, listBoxSelectedIndex);
             }
             break;
         }
@@ -393,6 +416,14 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
         {
             hMainWindow = hWnd;
 
+            //Get self directory and config file name.
+            wchar_t selfDirectory[256];
+            getSelfDirectory(selfDirectory);
+            memcpy(&iniFilePath, &selfDirectory, (wcslen(selfDirectory) + 1) * 2);
+            wcscat_s(iniFilePath, 256, L"\\DSW.ini");
+
+            isShowSum = IniGetInt(iniFilePath, L"Main", L"Show sum", 1);
+
             font = createFont(L"Lucida Console", 8, 14);
 
             hLabelRam = createLabel(L"RAM", 0, 0, 0, 0, hWnd);
@@ -417,12 +448,6 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
             }
 
             contextMenu = createContextMenu();
-
-            //Get self directory and config file name.
-            wchar_t selfDirectory[256];
-            getSelfDirectory(selfDirectory);
-            memcpy(&iniFilePath, &selfDirectory, (wcslen(selfDirectory) + 1) * 2);
-            wcscat_s(iniFilePath, 256, L"\\DSW.ini");
 
             //Load window position.
             const int magicNumber = -10001;
@@ -455,6 +480,8 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
             KillTimer(hWnd, TIMER_ID_UPDATE_RAM);
             DeleteObject(font);
             DestroyMenu(contextMenu);
+
+            IniSetInt(iniFilePath, L"Main", L"Show sum", isShowSum);
 
             //Save window position.
             RECT r;
