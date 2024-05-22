@@ -14,6 +14,18 @@
 #define ID_MENU_ITEM_SHOW_SUM (WM_USER + 12)
 #define ID_MENU_ITEM_STAY_ON_TOP (WM_USER + 13)
 #define ID_MENU_ITEM_EXIT (WM_USER + 14)
+#define ID_MENU_ITEM_INTERVAL_RAM_500MS (WM_USER + 20)
+#define ID_MENU_ITEM_INTERVAL_RAM_1SEC (WM_USER + 21)
+#define ID_MENU_ITEM_INTERVAL_RAM_2SEC (WM_USER + 22)
+#define ID_MENU_ITEM_INTERVAL_RAM_3SEC (WM_USER + 23)
+#define ID_MENU_ITEM_INTERVAL_RAM_4SEC (WM_USER + 24)
+#define ID_MENU_ITEM_INTERVAL_RAM_5SEC (WM_USER + 25)
+#define ID_MENU_ITEM_INTERVAL_DRIVES_500MS (WM_USER + 26)
+#define ID_MENU_ITEM_INTERVAL_DRIVES_1SEC (WM_USER + 27)
+#define ID_MENU_ITEM_INTERVAL_DRIVES_2SEC (WM_USER + 28)
+#define ID_MENU_ITEM_INTERVAL_DRIVES_3SEC (WM_USER + 29)
+#define ID_MENU_ITEM_INTERVAL_DRIVES_4SEC (WM_USER + 30)
+#define ID_MENU_ITEM_INTERVAL_DRIVES_5SEC (WM_USER + 31)
 
 HWND hMainWindow;
 HWND hLabelRam;
@@ -25,11 +37,39 @@ COLORREF colorBackground = RGB(240, 240, 240);
 COLORREF colorRam = 0;
 HBRUSH brushBackground;
 HMENU contextMenu;
+HMENU intervalsMenu = NULL;
 
 int isTimersEnabled = 1;
 int isStayOnTop = 1;
 int isShowSum = 1;
 int listBoxSelectedIndex = -1;
+unsigned int selectedDrivesUpdateInterval;
+unsigned int selectedRamUpdateInterval;
+
+HMENU createIntervalsMenu()
+{
+    HMENU hMenu = CreatePopupMenu();
+    if (hMenu)
+    {
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_RAM_500MS, L"RAM: 500 ms");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_RAM_1SEC, L"RAM: 1 second");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_RAM_2SEC, L"RAM: 2 seconds");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_RAM_3SEC, L"RAM: 3 seconds");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_RAM_4SEC, L"RAM: 4 seconds");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_RAM_5SEC, L"RAM: 5 seconds");
+
+        AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_DRIVES_500MS, L"DRIVES: 500 ms");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_DRIVES_1SEC, L"DRIVES: 1 second");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_DRIVES_2SEC, L"DRIVES: 2 seconds");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_DRIVES_3SEC, L"DRIVES: 3 seconds");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_DRIVES_4SEC, L"DRIVES: 4 seconds");
+        AppendMenu(hMenu, MF_STRING, ID_MENU_ITEM_INTERVAL_DRIVES_5SEC, L"DRIVES: 5 seconds");
+    }
+
+    return hMenu;
+}
 
 HMENU createContextMenu()
 {
@@ -42,6 +82,12 @@ HMENU createContextMenu()
         AppendMenu(hMenu, flagsItemTimersActive, ID_MENU_ITEM_TIMERS_ACTIVE, L"Обновлять по таймеру");
         int flagsItemShowSum = isShowSum ? MF_STRING | MF_CHECKED : MF_STRING;
         AppendMenu(hMenu, flagsItemShowSum, ID_MENU_ITEM_SHOW_SUM, L"Показывать сумму");
+
+        intervalsMenu = createIntervalsMenu();
+        if (intervalsMenu)
+        {
+            AppendMenu(hMenu, MF_POPUP, (UINT_PTR)intervalsMenu, L"Интервалы");
+        }
 
         AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
         int flagsItemStayOnTop = isStayOnTop ? MF_STRING | MF_CHECKED : MF_STRING;
@@ -228,8 +274,8 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
                     }
                     else
                     {
-                        SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 5000u, NULL);
-                        SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 1000u, NULL);
+                        SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
+                        SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
 
                         checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
 
@@ -254,6 +300,162 @@ LRESULT CALLBACK listBoxDrivesWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, L
 
                     if (isTimersEnabled) { updateDrives(); }
 
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_DRIVES_500MS:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 500u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_DRIVES_1SEC; id <= ID_MENU_ITEM_INTERVAL_DRIVES_5SEC; ++id)
+                    {
+                        checkMenuItem(contextMenu, id, 0u);
+                    }
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_INTERVAL_DRIVES_500MS, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedDrivesUpdateInterval = 500u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_DRIVES_1SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 1000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_DRIVES_500MS; id <= ID_MENU_ITEM_INTERVAL_DRIVES_5SEC; ++id)
+                    {
+                        checkMenuItem(contextMenu, id, 0u);
+                    }
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_INTERVAL_DRIVES_1SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedDrivesUpdateInterval = 1000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_DRIVES_2SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 2000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_DRIVES_500MS; id <= ID_MENU_ITEM_INTERVAL_DRIVES_5SEC; ++id)
+                    {
+                        checkMenuItem(contextMenu, id, 0u);
+                    }
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_INTERVAL_DRIVES_2SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedDrivesUpdateInterval = 2000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_DRIVES_3SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 3000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_DRIVES_500MS; id <= ID_MENU_ITEM_INTERVAL_DRIVES_5SEC; ++id)
+                    {
+                        checkMenuItem(contextMenu, id, 0u);
+                    }
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_INTERVAL_DRIVES_3SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedDrivesUpdateInterval = 3000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_DRIVES_4SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 4000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_DRIVES_500MS; id <= ID_MENU_ITEM_INTERVAL_DRIVES_5SEC; ++id)
+                    {
+                        checkMenuItem(contextMenu, id, 0u);
+                    }
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_INTERVAL_DRIVES_4SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedDrivesUpdateInterval = 4000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_DRIVES_5SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, 5000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_DRIVES_500MS; id < ID_MENU_ITEM_INTERVAL_DRIVES_5SEC; ++id)
+                    {
+                        checkMenuItem(contextMenu, id, 0u);
+                    }
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_INTERVAL_DRIVES_5SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedDrivesUpdateInterval = 5000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_RAM_500MS:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 500u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_RAM_1SEC; id <= ID_MENU_ITEM_INTERVAL_RAM_5SEC; ++id)
+                    {
+                        checkMenuItem(intervalsMenu, id, 0u);
+                    }
+                    checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_500MS, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedRamUpdateInterval = 500u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_RAM_1SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 1000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_RAM_500MS; id <= ID_MENU_ITEM_INTERVAL_RAM_5SEC; ++id)
+                    {
+                        checkMenuItem(intervalsMenu, id, 0u);
+                    }
+                    checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_1SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedRamUpdateInterval = 1000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_RAM_2SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 2000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_RAM_500MS; id <= ID_MENU_ITEM_INTERVAL_RAM_5SEC; ++id)
+                    {
+                        checkMenuItem(intervalsMenu, id, 0u);
+                    }
+                    checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_2SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedRamUpdateInterval = 2000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_RAM_3SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 3000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_RAM_500MS; id <= ID_MENU_ITEM_INTERVAL_RAM_5SEC; ++id)
+                    {
+                        checkMenuItem(intervalsMenu, id, 0u);
+                    }
+                    checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_3SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedRamUpdateInterval = 3000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_RAM_4SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 4000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_RAM_500MS; id <= ID_MENU_ITEM_INTERVAL_RAM_5SEC; ++id)
+                    {
+                        checkMenuItem(intervalsMenu, id, 0u);
+                    }
+                    checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_4SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedRamUpdateInterval = 4000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
+                    break;
+
+                case ID_MENU_ITEM_INTERVAL_RAM_5SEC:
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_RAM, 5000u, NULL);
+                    for (unsigned int id = ID_MENU_ITEM_INTERVAL_RAM_500MS; id < ID_MENU_ITEM_INTERVAL_RAM_5SEC; ++id)
+                    {
+                        checkMenuItem(intervalsMenu, id, 0u);
+                    }
+                    checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_5SEC, 1u);
+                    checkMenuItem(contextMenu, ID_MENU_ITEM_TIMERS_ACTIVE, 1u);
+                    isTimersEnabled = 1;
+                    selectedRamUpdateInterval = 5000u;
+                    SetTimer(hMainWindow, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
                     break;
 
                 case ID_MENU_ITEM_STAY_ON_TOP:
@@ -416,6 +618,8 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
         {
             hMainWindow = hWnd;
 
+            contextMenu = createContextMenu();
+
             //Get self directory and config file name.
             wchar_t selfDirectory[256];
             getSelfDirectory(selfDirectory);
@@ -432,7 +636,41 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
                 SendMessage(hLabelRam, WM_SETFONT, (WPARAM)font, 0);
 
                 updateRam();
-                SetTimer(hWnd, TIMER_ID_UPDATE_RAM, 1000u, NULL);
+
+                selectedRamUpdateInterval = (unsigned int)IniGetInt(iniFilePath, L"Main", L"RAM update interval", 0);
+                switch (selectedRamUpdateInterval)
+                {
+                    case 500u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_500MS, 1u);
+                        break;
+
+                    case 1000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_1SEC, 1u);
+                        break;
+
+                    case 2000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_2SEC, 1u);
+                        break;
+
+                    case 3000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_3SEC, 1u);
+                        break;
+
+                    case 4000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_4SEC, 1u);
+                        break;
+
+                    case 5000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_5SEC, 1u);
+                        break;
+
+                    default:
+                        selectedRamUpdateInterval = 1000u;
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_RAM_1SEC, 1u);
+                        break;
+                }
+
+                SetTimer(hWnd, TIMER_ID_UPDATE_RAM, selectedRamUpdateInterval, NULL);
             }
 
             hListBoxDrives = createListBox(L"Drive list", 0, 0, 0, 0, ID_LISTBOX, hWnd);
@@ -444,10 +682,41 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
 
                 oldListBoxDrivesWndProc = (WNDPROC)SetWindowLongPtr(hListBoxDrives, GWLP_WNDPROC, (LONG_PTR)&listBoxDrivesWndProc);
 
-                SetTimer(hWnd, TIMER_ID_UPDATE_DRIVES, 5000u, NULL);
-            }
+                selectedDrivesUpdateInterval = (unsigned int)IniGetInt(iniFilePath, L"Main", L"Drives update interval", 0);
+                switch (selectedDrivesUpdateInterval)
+                {
+                    case 500u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_DRIVES_500MS, 1u);
+                        break;
 
-            contextMenu = createContextMenu();
+                    case 1000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_DRIVES_1SEC, 1u);
+                        break;
+
+                    case 2000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_DRIVES_2SEC, 1u);
+                        break;
+
+                    case 3000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_DRIVES_3SEC, 1u);
+                        break;
+
+                    case 4000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_DRIVES_4SEC, 1u);
+                        break;
+
+                    case 5000u:
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_DRIVES_5SEC, 1u);
+                        break;
+
+                    default:
+                        selectedDrivesUpdateInterval = 5000u;
+                        checkMenuItem(intervalsMenu, ID_MENU_ITEM_INTERVAL_DRIVES_5SEC, 1u);
+                        break;
+                }
+
+                SetTimer(hWnd, TIMER_ID_UPDATE_DRIVES, selectedDrivesUpdateInterval, NULL);
+            }
 
             //Load window position.
             const int magicNumber = -10001;
@@ -479,9 +748,12 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lPa
             KillTimer(hWnd, TIMER_ID_UPDATE_DRIVES);
             KillTimer(hWnd, TIMER_ID_UPDATE_RAM);
             DeleteObject(font);
+            DestroyMenu(intervalsMenu);
             DestroyMenu(contextMenu);
 
             IniSetInt(iniFilePath, L"Main", L"Show sum", isShowSum);
+            IniSetInt(iniFilePath, L"Main", L"Drives update interval", (int)selectedDrivesUpdateInterval);
+            IniSetInt(iniFilePath, L"Main", L"RAM update interval", (int)selectedRamUpdateInterval);
 
             //Save window position.
             RECT r;
